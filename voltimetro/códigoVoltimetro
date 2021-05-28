@@ -1,0 +1,77 @@
+/**
+Uso de Arduino para leitura de entrada analógica.
+converte o valor de 0 a 1024 em um numero real de 0.00 a 5.00
+em uma barra de 0 a 16 caracteres personalizados.
+
+- leitra de entradas analógicas.
+- Conversão de tipos int a float.
+- LCD 44780.
+- Uso caracteres personalizados.
+
+Conxão do LCD 44780: 
+ * LCD pin#01 Vss 0V
+ * LCD pin#02 Vdd +5V
+ * LCD pin#03 Brillo:cursor presete 10K. Extremos entre 0V e 5Vcc.
+ * LCD pin#04 RS     ---> Arduino pin #12
+ * LCD pin#05 R/W    ---> GND
+ * LCD pin#06 Enable ---> Arduino pin #11
+ * LCD pin#07 D0 n.c.
+ * LCD pin#08 D1 n.c.
+ * LCD pin#09 D2 n.c.
+ * LCD pin#10 D3 n.c.
+ * LCD pin#11 D4     ---> Arduino pin #2 
+ * LCD pin#12 D5     ---> Arduino pin #3
+ * LCD pin#13 D6     ---> Arduino pin #4
+ * LCD pin#14 D7     ---> Arduino pin #5
+
+*/
+
+// Usamos a biblioteca "LiquidCrystal.h" (David A. Mellis 2008, Tom Igoe 2009) :
+#include <LiquidCrystal.h>
+
+// Inicializamos o LCD e sinalizamos os pinos de entrada.
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+int i,entrada, anterior=0;
+float tensao;
+byte smiley[8] = { //Aquì criamos nosso caracter personalizado.
+  B00000,
+  B11111,
+  B11111,
+  B11111,
+  B11111,
+  B11111,
+  B00000,
+};
+void atualiza();
+
+void atualiza (){
+ entrada = analogRead(0);
+ anterior = entrada;  //algo novo para mostrar. Evita piscar desparadamente.
+ tensao = entrada;
+ lcd.setCursor(12, 0);
+ lcd.print((float)tensao/200.0);
+  		// Comprimento da barra de acordo com o valor de A0:
+  		//Divide por 64 para converter a escala de 1024 a 16.
+ lcd.setCursor(0, 1);
+ for (i=1; i<(entrada/64); i++) lcd.write(byte(0));
+ for (i; i<= 16; i++) lcd.print(" ");
+}
+
+void setup() {
+  lcd.createChar(0, smiley);
+  // Declaramos numero de colunas e filas: 
+  lcd.begin(20, 4);
+  //inicio do display.
+  lcd.print("  ");
+	delay(4000);
+  lcd.setCursor(0, 0);
+  lcd.print("Entrada A0:     ");
+ atualiza();
+
+  }
+void loop() {
+entrada = analogRead(0);
+if ( entrada!= anterior ){ //reflash no display
+       atualiza();
+ }
+}
